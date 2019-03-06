@@ -3,7 +3,7 @@ import cv2
 class tracker():
     
     # When starting a new instance please be sure to specify all unassigned variables
-    def __init__(self, Mywindow_width, Mywindow_height, Mymargin, My_ym = 1, My_xm = 1, Mysmooth_factor = 15):
+    def __init__(self, Mywindow_width, Mywindow_height, Mymargin, Myminpix, My_ym = 1, My_xm = 1, Mysmooth_factor = 15):
         # list that stores all the past (left, right) center set values used for smoothing the output
         self.recent_centers = []
 
@@ -17,6 +17,9 @@ class tracker():
         # The pixel distance in both directions to slide (left_window + right_window) template for searching
         self.margin = Mymargin
 
+        # The pixel count needed at minimum to update window center 
+        self.minpix = Myminpix
+
         self.ym_per_pix = My_ym # meters per pixel in vertical axis
 
         self.xm_per_pix = My_xm # meters per pixel in horizontal axis
@@ -29,9 +32,11 @@ class tracker():
         window_width = self.window_width
         window_height = self.window_height
         margin = self.margin
+        minpix = self.minpix
 
         window_centroids = []   # Store the (left, right) window centroid positions per level
         window = np.ones(window_width)  # Create our window template that we will use for convolutions
+        leftx, rightx = [], []
 
         # First find the two starting positions for the left and right lane by using np.sum to get the vertical image slice
         # and then np.convolve the vertical image slice with the window template
@@ -44,6 +49,8 @@ class tracker():
 
         # Add what we found for the first layer
         window_centroids.append((l_center, r_center))
+        leftx.append(l_center)
+        rightx.append(r_center)
 
         # Go through each layer looking for max pixel locations
         for level in range(1, (int)(warped.shape[0]/window_height)):
@@ -53,16 +60,45 @@ class tracker():
             # Find the best left centroid by using past left center as a reference
             # Use window_width/2 as offset because convolution signal reference is at right side of the window, not center of window
             offset = window_width/2
+
+            # Find the left centroid by using past right center as a reference
             l_min_index = int(max(l_center+offset-margin, 0))
             l_max_index = int(min(l_center+offset+margin, warped.shape[1]))
-            l_center = np.argmax(conv_signal[l_min_index:l_max_index])+l_min_index-offset
+
+            # If total pixels > minpix pixels, recenter next window on their highest convolution-value position
+            if (np.max(conv_signal[l_min_index:l_max_index])) > minpix:
+                l_center = np.argmax(conv_signal[l_min_index:l_max_index])+l_min_index-offset
+
             # Find the best right centroid by using past right center as a reference
             r_min_index = int(max(r_center+offset-margin, 0))
             r_max_index = int(min(r_center+offset+margin, warped.shape[1]))
-            r_center = np.argmax(conv_signal[r_min_index:r_max_index])+r_min_index-offset
+
+            # If total pixels > minpix pixels, recenter next window on their highest convolution-value position
+            if (np.max(conv_signal[r_min_index:r_max_index])) > minpix:
+                r_center = np.argmax(conv_signal[r_min_index:r_max_index])+r_min_index-offset
+
+            ## DEBUG - Begins
+            if False:
+                print (r_center, (np.max(conv_signal[r_min_index:r_max_index])))
+            ## DEBUG - Ends
+
             # Add what we found for that layer
             window_centroids.append((l_center, r_center))
+            leftx.append(l_center)
+            rightx.append(r_center)
 
         self.recent_centers.append(window_centroids)
+
+        ## DEBUG - Begins
+        if False:
+            # test results manually by printing & comparing
+            avg_val = np.average(self.recent_centers[-self.smooth_factor:], axis=0)
+            print (self.recent_centers)
+            print ('\n')
+            print (avg_val)
+            print ('\n')
+        ## DEBUG - Ends
+
         # return averaged values of the line centers, helps to keep the markers from jumping around too much
         return np.average(self.recent_centers[-self.smooth_factor:], axis=0)
+        # return list(zip(leftx, rightx))

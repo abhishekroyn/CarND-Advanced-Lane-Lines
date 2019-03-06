@@ -3,9 +3,12 @@ import cv2
 import glob
 import pickle
 
+cal_height = 6
+cal_width = 9
+
 # Prepare object points, like (0,0,0), (1,0,0), (2,0,0) , ... , (6,5,0)
-objp = np.zeros((6*9,3), np.float32)
-objp[:,:2] = np.mgrid[0:9, 0:6].T.reshape(-1,2)
+objp = np.zeros((cal_height*cal_width,3), np.float32)
+objp[:,:2] = np.mgrid[0:cal_width, 0:cal_height].T.reshape(-1,2)
 
 # Arrays to store object points and image points from all the images.
 objpoints = []  # 3d points in real world space
@@ -20,7 +23,7 @@ for idx, fname in enumerate(images):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     # Find the chessboard corners
-    ret, corners = cv2.findChessboardCorners(gray, (9, 6), None)
+    ret, corners = cv2.findChessboardCorners(gray, (cal_width, cal_height), None)
 
     # If found, add object points, image points
     if ret == True:
@@ -29,7 +32,7 @@ for idx, fname in enumerate(images):
         imgpoints.append(corners)
 
         # Draw and display the corners
-        cv2.drawChessboardCorners(img, (9,6), corners, ret)
+        cv2.drawChessboardCorners(img, (cal_width, cal_height), corners, ret)
         write_name = 'camera_cal/corners_found'+str(idx+1)+'.jpg'
         cv2.imwrite(write_name, img)
 
