@@ -72,62 +72,62 @@ class Tracker():
         self.mtx = self.dist_pickle["mtx"]
         self.dist = self.dist_pickle["dist"]
 
-# for DEBUGGING only
-if False:
-    class Average:
-        """store list by adding to item and return Average"""
-        def __init__(self, period):
-            self.total = 0
-            self.queue = []
-            self.period = period
-        
-        def append(self, item):
-            """add item to the list"""
-            #print("append item: ", item)
-            self.total += item
-            self.queue.append(item)
-            #print("append total new ", self.total)
-            if len(self.queue) > self.period:
-                self.total -= self.queue.pop(0)
-            
-        def getAverage(self):
-            """get the mean of the list"""
-            length = len(self.queue)
-            if length == 0:
-                length = 1
-            #print("get avg, total: ", self.total, ", queue length: ", len(self.queue), "mean: ", self.total/length)
-            return self.total/length
-        
-        def clear(self):
-            """clear the average"""
-            self.total = 0
-            self.queue.clear()
+### DEBUG - Begins
+#if False:
+#    class Average:
+#        """store list by adding to item and return Average"""
+#        def __init__(self, period):
+#            self.total = 0
+#            self.queue = []
+#            self.period = period
+#        
+#        def append(self, item):
+#            """add item to the list"""
+#            #print("append item: ", item)
+#            self.total += item
+#            self.queue.append(item)
+#            #print("append total new ", self.total)
+#            if len(self.queue) > self.period:
+#                self.total -= self.queue.pop(0)
+#            
+#        def getAverage(self):
+#            """get the mean of the list"""
+#            length = len(self.queue)
+#            if length == 0:
+#                length = 1
+#            #print("get avg, total: ", self.total, ", queue length: ", len(self.queue), "mean: ", self.total/length)
+#            return self.total/length
+#        
+#        def clear(self):
+#            """clear the average"""
+#            self.total = 0
+#            self.queue.clear()
 
-    class AveragePolyFit:
-        """calculate and store the average PolyFit for left and right poly fit"""
-        
-        def __init__(self, period):
-            self.left = Average(period)
-            self.right = Average(period)
-            
-        def clear(self):
-            """clear all averages"""
-            self.left.clear()
-            self.right.clear()
-        
-        def addLeft(self, item):
-            """add the left polyFit"""
-            self.left.append(item)
-        
-        def getAvgLeft(self):
-            """get the average left poly fit"""
-            return self.left.getAverage()
-        
-        def addRight(self, item):
-            """add the right polyFit"""
-            self.right.append(item)
-        
-        def getAvgRight(self):
-            """get the average right poly fit"""
-            return self.right.getAverage()
-# for DEBUGGING only
+#    class AveragePolyFit:
+#        """calculate and store the average PolyFit for left and right poly fit"""
+#        
+#        def __init__(self, period):
+#            self.left = Average(period)
+#            self.right = Average(period)
+#            
+#        def clear(self):
+#            """clear all averages"""
+#            self.left.clear()
+#            self.right.clear()
+#        
+#        def addLeft(self, item):
+#            """add the left polyFit"""
+#            self.left.append(item)
+#        
+#        def getAvgLeft(self):
+#            """get the average left poly fit"""
+#            return self.left.getAverage()
+#        
+#        def addRight(self, item):
+#            """add the right polyFit"""
+#            self.right.append(item)
+#        
+#        def getAvgRight(self):
+#            """get the average right poly fit"""
+#            return self.right.getAverage()
+### DEBUG - Ends

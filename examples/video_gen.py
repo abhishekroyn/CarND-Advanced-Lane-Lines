@@ -5,24 +5,24 @@ import cv2
 import glob
 from tracker import Tracker
 
-## DEBUG - Begins
-if False:
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-    from tracker import Average
-    from tracker import AveragePolyFit
-## DEBUG - Ends
+### DEBUG - Begins
+#if False:
+#    import matplotlib.pyplot as plt
+#    import matplotlib.patches as patches
+#    from tracker import Average
+#    from tracker import AveragePolyFit
+### DEBUG - Ends
 
-## DEBUG - Begins
-if False:
-    frame_counter = 0
-## DEBUG - Ends
+### DEBUG - Begins
+#if False:
+#    frame_counter = 0
+### DEBUG - Ends
 
-## DEBUG - Begins
-if False:
-    avgPolyFit = AveragePolyFit(15)            # 1 for single image and 15 for video frames
-    avgPolyFit.clear()
-## DEBUG - Ends
+### DEBUG - Begins
+#if False:
+#    avgPolyFit = AveragePolyFit(15)            # 1 for single image and 15 for video frames
+#    avgPolyFit.clear()
+### DEBUG - Ends
 
 # Define a function that applies Sobel x or y
 def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
@@ -83,9 +83,7 @@ def window_mask(width, height, img_ref, center,level):
     output[int(img_ref.shape[0]-(level+1)*height):int(img_ref.shape[0]-level*height),max(0,int(center-width/2)):min(int(center+width/2),img_ref.shape[1])] = 1
     return output
 
-def preprocess_video_frame(img, mtx, dist):
-    # Image already in read format   
-    
+def preprocess_image(img, mtx, dist):
     # Image already in RGB format
 
     # Undistort the image
@@ -159,12 +157,12 @@ def find_window_centroids(warped, window_width, window_height, margin, minpix, r
     # Add what we found for the first layer
     window_centroids.append((l_center, r_center))
 
-    # for DEBUGGING only
-    if False:
-        leftx, rightx = [], []
-        leftx.append(l_center)
-        rightx.append(r_center)
-    ## DEBUG - Ends
+#    # for DEBUGGING only
+#    if False:
+#        leftx, rightx = [], []
+#        leftx.append(l_center)
+#        rightx.append(r_center)
+#    ## DEBUG - Ends
 
     # Go through each layer looking for max pixel locations
     for level in range(1, (int)(warped.shape[0]/window_height)):
@@ -191,82 +189,82 @@ def find_window_centroids(warped, window_width, window_height, margin, minpix, r
         if r_signal > minpix: # If total pixels > minpix pixels, recenter next window on their highest convolution-value position
             r_center = np.argmax(conv_signal[r_min_index:r_max_index])+r_min_index-offset
 
-        ## DEBUG - Begins
-        if False:
-            if l_signal < minpix:
-                print ('left')
-                print ('level - ', str(level))
-                print (np.argmax(conv_signal[l_min_index:l_max_index]))
-                print (np.max(conv_signal[l_min_index:l_max_index]))
+#        ## DEBUG - Begins
+#        if False:
+#            if l_signal < minpix:
+#                print ('left')
+#                print ('level - ', str(level))
+#                print (np.argmax(conv_signal[l_min_index:l_max_index]))
+#                print (np.max(conv_signal[l_min_index:l_max_index]))
 
-            if r_signal < minpix:
-                print ('right')
-                print ('level - ', str(level))
-                print (np.argmax(conv_signal[r_min_index:r_max_index]))
-                print (np.max(conv_signal[r_min_index:r_max_index]))
-        ## DEBUG - Ends
+#            if r_signal < minpix:
+#                print ('right')
+#                print ('level - ', str(level))
+#                print (np.argmax(conv_signal[r_min_index:r_max_index]))
+#                print (np.max(conv_signal[r_min_index:r_max_index]))
+#        ## DEBUG - Ends
 
-        ## DEBUG - Begins
-        if False:
-            l_signal_arg = np.argmax(conv_signal[l_min_index:l_max_index])
-            if l_signal_arg < 2:    # not able to detect any hot pixel, so relying on mean
-                leftx_mean = np.mean(leftx)        # getting the mean of all left pixels so far
-                l_center = leftx_mean
-            else:
-                l_center = l_signal_arg + l_min_index - offset
+#        ## DEBUG - Begins
+#        if False:
+#            l_signal_arg = np.argmax(conv_signal[l_min_index:l_max_index])
+#            if l_signal_arg < 2:    # not able to detect any hot pixel, so relying on mean
+#                leftx_mean = np.mean(leftx)        # getting the mean of all left pixels so far
+#                l_center = leftx_mean
+#            else:
+#                l_center = l_signal_arg + l_min_index - offset
 
-            if l_signal_arg < 2:
-                print ('left')
-                print ('level - ', str(level))
-                print (np.argmax(conv_signal[l_min_index:l_max_index]))
-                print (np.max(conv_signal[l_min_index:l_max_index]))
+#            if l_signal_arg < 2:
+#                print ('left')
+#                print ('level - ', str(level))
+#                print (np.argmax(conv_signal[l_min_index:l_max_index]))
+#                print (np.max(conv_signal[l_min_index:l_max_index]))
 
-            r_signal_arg = np.argmax(conv_signal[r_min_index:r_max_index])
-            if r_signal_arg < 2:    #not able to detect any hot pixel, so relying on mean
-                rightx_mean = np.mean(rightx)      # getting the mean of all right pixels so far
-                r_center = rightx_mean
-            else:
-                r_center = r_signal_arg + r_min_index - offset
+#            r_signal_arg = np.argmax(conv_signal[r_min_index:r_max_index])
+#            if r_signal_arg < 2:    #not able to detect any hot pixel, so relying on mean
+#                rightx_mean = np.mean(rightx)      # getting the mean of all right pixels so far
+#                r_center = rightx_mean
+#            else:
+#                r_center = r_signal_arg + r_min_index - offset
 
-            if r_signal_arg < 2:
-                print ('right')
-                print ('level - ', str(level))
-                print (np.argmax(conv_signal[r_min_index:r_max_index]))
-                print (np.max(conv_signal[r_min_index:r_max_index]))
-        ## DEBUG - Ends
+#            if r_signal_arg < 2:
+#                print ('right')
+#                print ('level - ', str(level))
+#                print (np.argmax(conv_signal[r_min_index:r_max_index]))
+#                print (np.max(conv_signal[r_min_index:r_max_index]))
+#        ## DEBUG - Ends
 
-        ## DEBUG - Begins
-        if False:
-            # There are many frames where the convolve identifies wrong hot pixels. Checking mean and correcting any big deviation
-            if np.absolute(l_center - leftx_mean) > window_width * 2:
-                l_center = leftx_mean + (l_center - leftx_mean) * .7
-                print ('left - level -', str(level))
-            if np.absolute(r_center - rightx_mean) > window_width * 2:
-                r_center = rightx_mean + (r_center - rightx_mean) * .7
-                print ('right - level -', str(level))
-        ## DEBUG - Ends
+#        ## DEBUG - Begins
+#        if False:
+#            # There are many frames where the convolve identifies wrong hot pixels. Checking mean and correcting any big deviation
+#            if np.absolute(l_center - leftx_mean) > window_width * 2:
+#                l_center = leftx_mean + (l_center - leftx_mean) * .7
+#                print ('left - level -', str(level))
+#            if np.absolute(r_center - rightx_mean) > window_width * 2:
+#                r_center = rightx_mean + (r_center - rightx_mean) * .7
+#                print ('right - level -', str(level))
+#        ## DEBUG - Ends
 
-        # for DEBUGGING only
-        if False:
-            leftx.append(l_center)
-            rightx.append(r_center)
-        ## DEBUG - Ends
+#        # for DEBUGGING only
+#        if False:
+#            leftx.append(l_center)
+#            rightx.append(r_center)
+#        ## DEBUG - Ends
 
         # Add what we found for that layer
         window_centroids.append((l_center, r_center))
 
     recent_centers.append(window_centroids)
 
-    ## DEBUG - Begins
-    if False:
-        # test results manually by printing & comparing
-        avg_val = np.average(np.array(recent_centers)[-smooth_factor:], axis=0)
-        print ("DEBUGGING \n")
-        print (np.array(recent_centers))
-        print ('\n')
-        print (avg_val)
-        print ('\n')
-    ## DEBUG - Ends
+#    ## DEBUG - Begins
+#    if False:
+#        # test results manually by printing & comparing
+#        avg_val = np.average(np.array(recent_centers)[-smooth_factor:], axis=0)
+#        print ("DEBUGGING \n")
+#        print (np.array(recent_centers))
+#        print ('\n')
+#        print (avg_val)
+#        print ('\n')
+#    ## DEBUG - Ends
 
     # return averaged values of the line centers, helps to keep the markers from jumping around too much
     return np.average(np.array(recent_centers)[-smooth_factor:], axis=0), recent_centers
@@ -314,23 +312,23 @@ def find_lane_boundaries(warped_cropped, window_height, leftx, rightx, window_wi
     yvals = range(0, warped_cropped.shape[0])
     res_yvals = np.arange(warped_cropped.shape[0]-(tracker.window_height/2), 0, -tracker.window_height)
 
-    ## DEBUG - Begins
-    if False:
-        # points used to find the left and right lanes based on window mask regions        
-        lefts = []
-        rigths = []
+#    ## DEBUG - Begins
+#    if False:
+#        # points used to find the left and right lanes based on window mask regions        
+#        lefts = []
+#        rigths = []
 
-        # points used to find the left and right lanes based on window mask regions        
-        lefts = l_points.nonzero()
-        rigths = r_points.nonzero()
-        # Add current polyfit to average and then get the average to be used here
-        avgPolyFit.addLeft(np.polyfit(lefts[0], lefts[1], 2))
-        left_fit = avgPolyFit.getAvgLeft()
+#        # points used to find the left and right lanes based on window mask regions        
+#        lefts = l_points.nonzero()
+#        rigths = r_points.nonzero()
+#        # Add current polyfit to average and then get the average to be used here
+#        avgPolyFit.addLeft(np.polyfit(lefts[0], lefts[1], 2))
+#        left_fit = avgPolyFit.getAvgLeft()
 
-        #Add current polyfit to average and then get the average to be used here
-        avgPolyFit.addRight(np.polyfit(rights[0], rights[1], 2))
-        right_fit = avgPolyFit.getAvgRight()
-    # for DEBUGGING only
+#        #Add current polyfit to average and then get the average to be used here
+#        avgPolyFit.addRight(np.polyfit(rights[0], rights[1], 2))
+#        right_fit = avgPolyFit.getAvgRight()
+#    # for DEBUGGING only
 
     left_fit = np.polyfit(res_yvals, leftx, 2)
     right_fit = np.polyfit(res_yvals, rightx, 2)
@@ -385,99 +383,103 @@ def draw_curvature_offset(result, curverad_left, curverad_right, center_diff, si
     cv2.putText(result, 'Vehicle is ' + str(abs(round(center_diff, 3))) + 'm ' + side_pos + ' of center', (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
     return result
 
-## DEBUG - Begins
-def draw_details_debugging_results(src, dst, result, result_raw, warped, warped_cropped, window_centroids, img, M, img_size, s_binary, v_binary, c_binary, gradx, grady, window_height):
-    if False: 
-        # draw the details results
-        f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(42, 9))
-        f.tight_layout()
-        ax1.add_patch(patches.Polygon(src, fill=False))
-        ax1.add_patch(patches.Polygon(dst, fill=False))
-        ax1.imshow(result)
-        ax1.set_title('result')
-        ax2.add_patch(patches.Polygon(roi_vertices, fill=False, color='yellow'))
-        ax2.imshow(warped, cmap='gray')
-        ax2.set_title('warped')
-        ax3.imshow(result_raw)
-        ax3.set_title('result_raw')
+### DEBUG - Begins
+#def draw_details_debugging_results(src, dst, result, result_raw, warped, warped_cropped, window_centroids, img, M, img_size, s_binary, v_binary, c_binary, gradx, grady, window_height):
+#    if False: 
+#        # draw the details results
+#        f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(42, 9))
+#        f.tight_layout()
+#        ax1.add_patch(patches.Polygon(src, fill=False))
+#        ax1.add_patch(patches.Polygon(dst, fill=False))
+#        ax1.imshow(result)
+#        ax1.set_title('result')
+#        ax2.add_patch(patches.Polygon(roi_vertices, fill=False, color='yellow'))
+#        ax2.imshow(warped, cmap='gray')
+#        ax2.set_title('warped')
+#        ax3.imshow(result_raw)
+#        ax3.set_title('result_raw')
 
-        # Go through each level and draw the Windows
-        for level in range(0, len(window_centroids)):
-            x_l = window_centroids[level][0]
-            x_r = window_centroids[level][1]
-            y = img.shape[0]-((level + 0.5) * window_height)
-            plt.plot(x_l, y, 'ro')
-            plt.plot(x_r, y, 'bo')
+#        # Go through each level and draw the Windows
+#        for level in range(0, len(window_centroids)):
+#            x_l = window_centroids[level][0]
+#            x_r = window_centroids[level][1]
+#            y = img.shape[0]-((level + 0.5) * window_height)
+#            plt.plot(x_l, y, 'ro')
+#            plt.plot(x_r, y, 'bo')
 
-        if False:
-            f, (ax1a, ax1b, ax2a, ax2b, ax2, ax3a, ax3b, ax4, ax5, ax6, ax7, ax8) = plt.subplots(1, 12, figsize=(42, 9))
-            f.tight_layout()
+#        if False:
+#            f, (ax1a, ax1b, ax2a, ax2b, ax2, ax3a, ax3b, ax4, ax5, ax6, ax7, ax8) = plt.subplots(1, 12, figsize=(42, 9))
+#            f.tight_layout()
 
-            ax1a.add_patch(patches.Polygon(src, fill=False))
-            ax1a.add_patch(patches.Polygon(dst, fill=False))
-            ax1a.imshow(img)
-            ax1a.set_title('img')
-            ax1b.imshow(cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR))
-            ax1b.set_title('original_image_warped_rgb')
+#            ax1a.add_patch(patches.Polygon(src, fill=False))
+#            ax1a.add_patch(patches.Polygon(dst, fill=False))
+#            ax1a.imshow(img)
+#            ax1a.set_title('img')
+#            ax1b.imshow(cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR))
+#            ax1b.set_title('original_image_warped_rgb')
 
-            ax2a.imshow(s_binary, cmap='gray')
-            ax2a.set_title('s_binary')
-            ax2b.imshow(v_binary, cmap='gray')
-            ax2b.set_title('v_binary')
-            ax2.imshow(c_binary, cmap='gray')
-            ax2.set_title('c_binary')
+#            ax2a.imshow(s_binary, cmap='gray')
+#            ax2a.set_title('s_binary')
+#            ax2b.imshow(v_binary, cmap='gray')
+#            ax2b.set_title('v_binary')
+#            ax2.imshow(c_binary, cmap='gray')
+#            ax2.set_title('c_binary')
 
-            ax3a.imshow(gradx, cmap='gray')
-            ax3a.set_title('gradx')
-            ax3b.imshow(grady, cmap='gray')
-            ax3b.set_title('grady')
+#            ax3a.imshow(gradx, cmap='gray')
+#            ax3a.set_title('gradx')
+#            ax3b.imshow(grady, cmap='gray')
+#            ax3b.set_title('grady')
 
-            ax4.add_patch(patches.Polygon(src, fill=False))
-            ax4.add_patch(patches.Polygon(dst, fill=False))
-            ax4.imshow(preprocessImage, cmap='gray')
-            ax4.set_title('preprocessImage')
+#            ax4.add_patch(patches.Polygon(src, fill=False))
+#            ax4.add_patch(patches.Polygon(dst, fill=False))
+#            ax4.imshow(preprocessImage, cmap='gray')
+#            ax4.set_title('preprocessImage')
 
-            ax5.add_patch(patches.Polygon(roi_vertices, fill=False, color='yellow'))
-            ax5.imshow(warped, cmap='gray')
-            ax5.set_title('warped')
+#            ax5.add_patch(patches.Polygon(roi_vertices, fill=False, color='yellow'))
+#            ax5.imshow(warped, cmap='gray')
+#            ax5.set_title('warped')
 
-            ax6.imshow(warped_cropped, cmap='gray')
-            ax6.set_title('warped_cropped')
+#            ax6.imshow(warped_cropped, cmap='gray')
+#            ax6.set_title('warped_cropped')
 
-            ax7.add_patch(patches.Polygon(src, fill=False))
-            ax7.add_patch(patches.Polygon(dst, fill=False))
-            ax7.imshow(result)
-            ax7.set_title('result')
+#            ax7.add_patch(patches.Polygon(src, fill=False))
+#            ax7.add_patch(patches.Polygon(dst, fill=False))
+#            ax7.imshow(result)
+#            ax7.set_title('result')
 
-            ax8.imshow(result_raw, cmap='gray')
-            ax8.set_title('result_raw')
+#            ax8.imshow(result_raw, cmap='gray')
+#            ax8.set_title('result_raw')
 
-            # Go through each level and draw the Windows
-            for level in range(0, len(window_centroids)):
-                x_l = window_centroids[level][0]
-                x_r = window_centroids[level][1]
-                y = img.shape[0]-((level + 0.5) * window_height)
-                plt.plot(x_l, y, 'ro')
-                plt.plot(x_r, y, 'bo')
+#            # Go through each level and draw the Windows
+#            for level in range(0, len(window_centroids)):
+#                x_l = window_centroids[level][0]
+#                x_r = window_centroids[level][1]
+#                y = img.shape[0]-((level + 0.5) * window_height)
+#                plt.plot(x_l, y, 'ro')
+#                plt.plot(x_r, y, 'bo')
 
-        # plt.show()
-        
-        if False:
-            global frame_counter 
-            frame_counter = frame_counter + 1
-            write_name = '../debug_dir/video_frame_'+str(frame_counter)+'.png'
-            plt.savefig(write_name)
+#        # plt.show()
+#        
+#        if False:
+#            global frame_counter 
+#            frame_counter = frame_counter + 1
+#            write_name = '../debug_dir/video_frame_'+str(frame_counter)+'.png'
+#            plt.savefig(write_name)
 
-    if False:
-        # global frame_counter 
-        frame_counter = frame_counter + 1
-        write_name = '../debug_dir/debug_frames/video_frame_'+str(frame_counter)+'.png'
-        cv2.imwrite(write_name, cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    ## DEBUG - Ends
+#    if False:
+#        # global frame_counter 
+#        frame_counter = frame_counter + 1
+#        write_name = '../debug_dir/debug_frames/video_frame_'+str(frame_counter)+'.png'
+#        cv2.imwrite(write_name, cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+### DEBUG - Ends
 
 def process_image(img):
-    # process video frame and generate binary pixel of interests
-    preprocessImage, img, img_size = preprocess_video_frame(img, tracker.mtx, tracker.dist)
+    # Image already in read format   
+
+    # Image already in RGB format
+
+    # process image and generate binary pixel of interests
+    preprocessImage, img, img_size = preprocess_image(img, tracker.mtx, tracker.dist)
 
     # Define properties transformation area
     src, dst, roi_vertices = find_src_dst_roi_vertices(tracker.bot_width, tracker.mid_width, tracker.height_pct, tracker.bottom_trim, img_size)
@@ -509,18 +511,18 @@ def process_image(img):
     # draw the text showing curvature and offset
     result = draw_curvature_offset(result, curverad_left, curverad_right, center_diff, side_pos)
 
-    ## DEBUG - Begins
-    if False:
-        # draw details debugging results
-        draw_details_debugging_results(src, dst, result, result_raw, warped, warped_cropped, window_centroids, img, M, img_size, s_binary, v_binary, c_binary, gradx, grady, tracker.window_height)
-    ## DEBUG - Ends
+#    ## DEBUG - Begins
+#    if False:
+#        # draw details debugging results
+#        draw_details_debugging_results(src, dst, result, result_raw, warped, warped_cropped, window_centroids, img, M, img_size, s_binary, v_binary, c_binary, gradx, grady, tracker.window_height)
+#    ## DEBUG - Ends
     
     return result
 
-## DEBUG - Begins
-if False:
-    images = glob.glob('../debug_dir/debug_frames/temp/video_frame_*.jpg')
-## DEBUG - Ends
+### DEBUG - Begins
+#if False:
+#    images = glob.glob('../debug_dir/debug_frames/temp/video_frame_*.jpg')
+### DEBUG - Ends
 
 # Set up the overall class to do all the tracking
 tracker = Tracker(Mycalib_width = 9, Mycalib_height = 6, Mywindow_width = 25, Mywindow_height = 80, Mymargin = 50, Myminpix = 50000, My_ym = 10/720, My_xm = 4/384, Mysmooth_factor = 15, Mybot_width = .76, Mymid_width = .08, Myheight_pct = .62, Mybottom_trim = .935)
