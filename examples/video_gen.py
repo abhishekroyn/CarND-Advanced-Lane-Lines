@@ -38,30 +38,36 @@ def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
     binary_output[(scaled_sobel >= thresh[0]) & (scaled_sobel <= thresh[1])] = 1
     return binary_output
 
-def mag_thresh(img, sobel_kernel=3, thresh=(0, 255)):
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
-    sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
-    gradmag = np.sqrt(np.square(sobelx) + np.square(sobely))
-    scaled_factor = np.max(gradmag)/255
-    gradmag = (gradmag/scaled_factor).astype(np.uint8)
-    binary_output = np.zeros_like(gradmag)
-    # Apply threshold 
-    binary_output[(gradmag >= thresh[0]) & (gradmag >= thresh[1])] = 1
-    return binary_output
+### DEBUG - Begins
+#def mag_thresh(img, sobel_kernel=3, thresh=(0, 255)):
+#    if False:
+#        # Convert to grayscale
+#        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+#        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
+#        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+#        gradmag = np.sqrt(np.square(sobelx) + np.square(sobely))
+#        scaled_factor = np.max(gradmag)/255
+#        gradmag = (gradmag/scaled_factor).astype(np.uint8)
+#        binary_output = np.zeros_like(gradmag)
+#        # Apply threshold 
+#        binary_output[(gradmag >= thresh[0]) & (gradmag >= thresh[1])] = 1
+#    return binary_output
+### DEBUG - Ends
 
-def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
-    sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
-    with np.errstate(divide='ignore', invalid='ignore'):
-        absgraddir = np.absolute(np.arctan2(sobely, sobelx))
-        binary_output = np.zeros_like(absgraddir)
-        # Apply threshold
-        binary_output[(absgraddir >= thresh[0]) & (absgraddir <= thresh[1])] = 1
-    return binary_output
+### DEBUG - Begins
+#def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
+#    if False:
+#        # Convert to grayscale
+#        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+#        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
+#        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+#        with np.errstate(divide='ignore', invalid='ignore'):
+#            absgraddir = np.absolute(np.arctan2(sobely, sobelx))
+#            binary_output = np.zeros_like(absgraddir)
+#            # Apply threshold
+#            binary_output[(absgraddir >= thresh[0]) & (absgraddir <= thresh[1])] = 1
+#    return binary_output
+### DEBUG - Ends
 
 def color_threshold(img, sthresh=(0, 255), vthresh=(0, 255)):
     hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
@@ -77,11 +83,6 @@ def color_threshold(img, sthresh=(0, 255), vthresh=(0, 255)):
     output = np.zeros_like(s_channel)
     output[(s_binary == 1) & (v_binary == 1)] = 1
     return output, s_binary, v_binary
-
-def window_mask(width, height, img_ref, center,level):
-    output = np.zeros_like(img_ref)
-    output[int(img_ref.shape[0]-(level+1)*height):int(img_ref.shape[0]-level*height),max(0,int(center-width/2)):min(int(center+width/2),img_ref.shape[1])] = 1
-    return output
 
 def preprocess_image(img, mtx, dist):
     # Image already in RGB format
@@ -268,6 +269,11 @@ def find_window_centroids(warped, window_width, window_height, margin, minpix, r
 
     # return averaged values of the line centers, helps to keep the markers from jumping around too much
     return np.average(np.array(recent_centers)[-smooth_factor:], axis=0), recent_centers
+
+def window_mask(width, height, img_ref, center,level):
+    output = np.zeros_like(img_ref)
+    output[int(img_ref.shape[0]-(level+1)*height):int(img_ref.shape[0]-level*height),max(0,int(center-width/2)):min(int(center+width/2),img_ref.shape[1])] = 1
+    return output
 
 def find_lane_mask_pixels(window_width, window_height, warped_cropped, window_centroids):
     # points used to find the left and right lanes based on window centroids
@@ -479,7 +485,7 @@ def process_image(img):
     # Image already in RGB format
 
     # process image and generate binary pixel of interests
-    preprocessImage, img, img_size = preprocess_image(img, tracker.mtx, tracker.dist)
+    preprocessImage, undistored_image, img_size = preprocess_image(img, tracker.mtx, tracker.dist)
 
     # Define properties transformation area
     src, dst, roi_vertices = find_src_dst_roi_vertices(tracker.bot_width, tracker.mid_width, tracker.height_pct, tracker.bottom_trim, img_size)
@@ -503,7 +509,7 @@ def process_image(img):
     left_lane, right_lane, inner_lane, yvals, res_yvals, left_fitx, right_fitx = find_lane_boundaries(warped_cropped, tracker.window_height, leftx, rightx, tracker.window_width, l_points, r_points)
 
     # draw the results with final left, right and inner lane lines
-    result = draw_results_left_right_inner_lines(img, left_lane, right_lane, inner_lane, Minv, img_size)
+    result = draw_results_left_right_inner_lines(undistored_image, left_lane, right_lane, inner_lane, Minv, img_size)
 
     # calculate radius of left & right curvature and the offset of the car on the road
     curverad_left, curverad_right, center_diff, side_pos = calculate_curvature_offset(res_yvals, yvals, leftx, rightx, tracker.ym_per_pix, tracker.xm_per_pix, left_fitx, right_fitx, warped)
