@@ -58,7 +58,6 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 ##### Test Image with Corners Highlighted
 ![alt text][image2]
-### Pipeline (single images)
 
 ##### Undistored Test Image Calibration
 ![alt text][image3]
@@ -225,10 +224,9 @@ Here I'll talk about the approach I took, what techniques I used, what worked an
 Things I followed,
 1) In few frames, this method was not able to detect any hot pixels, so I tried to assign center for that section as `mean of the past center values`. It failed and results were poor. I tried to assign `last center value` in those cases as well. It still failed and resuls were poor.
 2) I tried to compare the detected window-center value for a section with previous values and check it's deviation from mean values of past-centers. And if found above a threshold then lower assign a relatively lower value to keep the deviation of the detected window-center closer to the mean value, but that resulted in poor results. I think it may work well when perspective warped image of lane-lines are highly vertical, else it mostly misses the values on curves even if those are genuine values.
-2) Thus, I placed the logic to count the number of highlighted pixels in the specific window-section for each of the lanes, and if max value of the convolution of the sliding window with that rectangular section is below a threshold, then window-center of that section is assigned same as window-center of previous section. This logic helped to avoid unnecessary drifitng of lane-lines detection due to noises and gave satisfactory result. So basically, if total pixels > minpix pixels, recenter next window on their highest convolution-value position, else center value remains same as the last value.
-3) I tried to improve pre-processing of the image using magnitude and direction gradient with varying values of sobel_kernel and thresholds, but did not get better result than current.
-4) I tried to improve pre-processing of the image using more color filters with varying values of thresholds especially using a combination of saturation and lightness, but did not get better result than current.
-5) 
+3) Thus, I placed the logic to count the number of highlighted pixels in the specific window-section for each of the lanes, and if max value of the convolution of the sliding window with that rectangular section is below a threshold, then window-center of that section is assigned same as window-center of previous section. This logic helped to avoid unnecessary drifitng of lane-lines detection due to noises and gave satisfactory result. So basically, if total pixels > minpix pixels, recenter next window on their highest convolution-value position, else center value remains same as the last value.
+4) I tried to improve pre-processing of the image using magnitude and direction gradient with varying values of sobel_kernel and thresholds, but did not get better result than current.
+5) I tried to improve pre-processing of the image using more color filters with varying values of thresholds especially using a combination of saturation and lightness, but did not get better result than current.
 
 Things I intend to try in future to improve results for optional harder challengs as my technique did not do well on them,
 *   updating src & dst corner points dynamically instead of keeping them static
