@@ -211,7 +211,7 @@ I added text stating radius of curvature and offset of the car from center in li
 
 The code pipeline for this step is contained in the ninth and fiteenth code cells under 'Build an Advanced Lane Finding Pipeline' of the IPython notebook located at "./advanced_lane_lines_pipeline.ipynb".
 
-Here's a [link to my video result](video1)
+Here's a [link to my video result](./output1_tracked.mp4)
 
 ---
 
